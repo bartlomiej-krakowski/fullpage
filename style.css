@@ -12,7 +12,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  transition-duration: 1.3s;
+  transition-duration: 1.1s;
   width: 100%;
 }
 
@@ -39,8 +39,6 @@ body {
 
 .fullPage--c03 {
   background-color: #9000B3;
-  min-height: 50vh;
-  height: 50vh;
 }
 
 .fullPage--c04 {
@@ -49,4 +47,8 @@ body {
 
 .fullPage--c05 {
   background-color: #37000A;
+}
+
+.fullPage--c05 {
+  min-height: 20vh;
 }
