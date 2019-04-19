@@ -1,64 +1,92 @@
-let index = 0;
-let scrolled = false;
-const body = document.querySelector('body');
-const sections = document.querySelectorAll('.fullPage');
+class Fullpage {
 
-window.addEventListener('wheel', scrollHandler);
-body.addEventListener('transitionend', enableScrolling);
-document.addEventListener('keydown', pressHandler);
+  constructor() {
 
-function scrollHandler(e) {
-
-  if (e.deltaY < 0) {
-    slideUp();
-  }
-
-  else if (e.deltaY > 0) {
-    slideDown();
-  }
-}
-
-function pressHandler(e) {
-  if (e.keyCode==38) {
-    slideUp();
-  } 
-  else if (e.keyCode==40) {
-    slideDown();
-  }
-}
-
-function preventScrolling() {
-  scrolled = true;
-}
-
-function enableScrolling() {
-  scrolled = false;
-}
-
-function slideUp() {
-  if (index > 0 && !scrolled) {
-    index--;
-    let position = 0;
+    this.setVars();
     
-    for (i = 0; i < index; i++) {
-      position -= sections[i].offsetHeight;
+    if(window.innerWidth >= this.breakpoint) {
+      this.setEvents();
+    }
+
+  }
+
+  setVars() {
+    this.body = document.querySelector('body');
+    this.sections = document.querySelectorAll(`*[data-fullpage]`);
+    
+    this.index = 0;
+    this.scrolled = false;
+    
+    this.arrows = {
+      up: 38,
+      down: 40,
+    }
+    this.breakpoint = 550;
+    
+  }
+
+  setEvents() {
+    window.addEventListener('wheel', (e) => this.scrollHandler(e));
+    this.body.addEventListener('transitionend', (e) => this.enableScrolling(e));
+    document.addEventListener('keydown', (e) => this.pressHandler(e));
+  }
+
+
+  scrollHandler(e) {
+    if (e.deltaY < 0) {
+      this.slideUp();
     }
   
-    body.style.top = `${position}px`;
-    preventScrolling();
+    else if (e.deltaY > 0) {
+      this.slideDown();
+    }
+  }
+  
+   pressHandler(e) {
+    if (e.keyCode === this.arrows.up) {
+      this.slideUp();
+    } 
+    else if (e.keyCode === this.arrows.down) {
+      this.slideDown();
+    }
+  }
+  
+   preventScrolling() {
+    this.scrolled = true;
+  }
+
+   enableScrolling() {
+    this.scrolled = false;
+  }
+
+  slideUp() {
+    if (this.index > 0 && !this.scrolled) {
+      this.index--;
+      let position = 0;
+
+      for (let i = 0; i < this.index; i++) {
+        position -= this.sections[i].offsetHeight;
+      }
+    
+      this.body.style.top = `${position}px`;
+      this.preventScrolling();
+    }
+  }
+  
+   slideDown() {
+    if (this.index <= this.sections.length-2 && !this.scrolled) {
+      this.index++;
+      let position = 0;
+      
+      for (let i = 0; i < this.index; i++) {
+        position -= this.sections[i+1].offsetHeight;
+      }
+    
+      this.body.style.top = `${position}px`;
+      this.preventScrolling();
+    }
   }
 }
 
-function slideDown() {
-  if (index <= sections.length-2 && !scrolled) {
-    index++;
-    let position = 0;
-    
-    for (i = 0; i < index; i++) {
-      position -= sections[i+1].offsetHeight;
-    }
-  
-    body.style.top = `${position}px`;
-    preventScrolling();
-  }
-}
+
+new Fullpage();
