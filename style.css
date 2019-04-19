@@ -39,6 +39,8 @@ body {
 
 .fullPage--c03 {
   background-color: #9000B3;
+  min-height: 50vh;
+  height: 50vh;
 }
 
 .fullPage--c04 {

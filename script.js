@@ -8,18 +8,21 @@ body.addEventListener('transitionend', enableScrolling);
 document.addEventListener('keydown', pressHandler);
 
 function scrollHandler(e) {
-  if (e.deltaY < 0 && index > 0 && !scrolled) {slideUp();
+
+  if (e.deltaY < 0) {
+    slideUp();
   }
-  else if (e.deltaY > 0 && index <= sections.length-2 && !scrolled) {
+
+  else if (e.deltaY > 0) {
     slideDown();
   }
 }
 
 function pressHandler(e) {
-  if (e.keyCode==38 && index > 0 && !scrolled) {
+  if (e.keyCode==38) {
     slideUp();
   } 
-  else if (e.keyCode==40 && index <= sections.length-2 && !scrolled) {
+  else if (e.keyCode==40) {
     slideDown();
   }
 }
@@ -33,25 +36,29 @@ function enableScrolling() {
 }
 
 function slideUp() {
-  index--;
-  let position = 0;
+  if (index > 0 && !scrolled) {
+    index--;
+    let position = 0;
+    
+    for (i = 0; i < index; i++) {
+      position -= sections[i].offsetHeight;
+    }
   
-  for (i = 0; i < index; i++) {
-    position -= sections[i].offsetHeight;
+    body.style.top = `${position}px`;
+    preventScrolling();
   }
-
-  body.style.top = `${position}px`;
-  preventScrolling();
 }
 
 function slideDown() {
-  index++;
-  let position = 0;
+  if (index <= sections.length-2 && !scrolled) {
+    index++;
+    let position = 0;
+    
+    for (i = 0; i < index; i++) {
+      position -= sections[i+1].offsetHeight;
+    }
   
-  for (i = 0; i < index; i++) {
-    position -= sections[i].offsetHeight;
+    body.style.top = `${position}px`;
+    preventScrolling();
   }
-
-  body.style.top = `${position}px`;
-  preventScrolling();
 }
