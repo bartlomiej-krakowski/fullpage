@@ -40,9 +40,7 @@ function slideUp() {
     position -= sections[i].offsetHeight;
   }
 
-  console.log(position)
-  
-  body.style.top = position;
+  body.style.top = `${position}px`;
   preventScrolling();
 }
 
@@ -54,8 +52,6 @@ function slideDown() {
     position -= sections[i].offsetHeight;
   }
 
-  console.log(position)
-  
-  body.style.top = position;
+  body.style.top = `${position}px`;
   preventScrolling();
 }
