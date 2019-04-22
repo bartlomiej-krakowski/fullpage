@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css?family=Montserrat");
+
 * {
   padding: 0;
   margin: 0;
@@ -9,11 +10,7 @@ html {
 }
 
 body {
-  position: fixed;
-  top: 0;
-  left: 0;
-  transition-duration: 1.1s;
-  width: 100%;
+  /* overflow: hidden; */
 }
 
 .fullPage {
@@ -51,4 +48,21 @@ body {
 
 .fullPage--c05 {
   min-height: 20vh;
+}
+
+.fullpage-nav {
+  position: fixed;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  list-style-type: none;
+}
+
+*[data-fullpage-nav-item] {
+  width: 7px;
+  height: 7px;
+  background-color: #fff;
+  display: block;
+  margin-bottom: 10px;
+  border-radius: 50%;
 }
