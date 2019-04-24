@@ -20,6 +20,7 @@ body {
   align-items: center;
   justify-content: center;
 }
+
 .fullPage__headline {
   font-family: "Montserrat", sans-serif;
   font-size: 3rem;
@@ -59,10 +60,15 @@ body {
 }
 
 *[data-fullpage-nav-item] {
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   background-color: #fff;
   display: block;
   margin-bottom: 10px;
   border-radius: 50%;
+  transition-duration: .3s;
+}
+
+*[data-fullpage-nav-item-state="active"] {
+  transform: scale(1.5);
 }

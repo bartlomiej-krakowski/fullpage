@@ -12,13 +12,26 @@ class Fullpage {
 
   setVars() {
     this.sections = document.querySelectorAll(`*[data-fullpage]`);
-    this.navigation = document.querySelector(`*[data-fullpage-nav]`)
+    this.allVisible = [];
+
+    this.navigation = {
+      container: document.querySelector(`*[data-fullpage-nav]`),
+      item: 'data-fullpage-nav-item',
+      properties: 'data-fullpage-nav-item-state',
+      items: null,
+
+      states: {
+        active: 'active',
+      }
+    }
 
     this.settings = {
       index: 0,
       scrolled: false,
       breakpoint: 550,
       initialScroll: 0,
+      observerInitialize: false,
+      delay: 0,
     }
 
     this.arrows = {
@@ -28,13 +41,19 @@ class Fullpage {
       end: 35,
     }
 
+    this.observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.2,
+    };
+
   }
 
   setEvents() {
-    window.addEventListener('wheel', e => this.wheelHandler(e));
+    window.addEventListener('load', this.navigationInit());
+    window.addEventListener('wheel', e => this.wheelHandler(e), { passive: false });
     window.addEventListener('scroll', e => this.scrollHandler(e));
     document.addEventListener('keydown', e => this.pressHandler(e));
-    window.addEventListener('load', () => this.navigationInit());
   }
 
 
@@ -45,21 +64,17 @@ class Fullpage {
     if (e.deltaY < 0) {
       this.slideUp();
     }
-
     else if (e.deltaY > 0) {
       this.slideDown();
     }
+
   }
 
   scrollHandler(e) {
-    const currentScroll = document.documentElement.scrollTop || document.body.scrollTop;
-
-    if (currentScroll > 0 && this.settings.initialScroll <= currentScroll){
-      this.slideDown();
-    } else {
-      this.slideUp();
+    if (!this.settings.observerInitialize) {
+      this.initObserver();
+      this.settings.observerInitialize = true;
     }
-    this.settings.initialScroll = currentScroll;
   }
 
    pressHandler(e) {
@@ -89,13 +104,13 @@ class Fullpage {
   }
 
   preventScrolling() {
-    this.settings.scrolled = true;
+    if (!this.settings.scrolled) {
+      this.settings.scrolled = true;
 
-    const test = this;
-
-    setTimeout(function() {
-      test.enableScrolling();
-    }, 500);
+      setTimeout(() => {
+        this.enableScrolling();
+      }, 500);
+    }
   }
 
   enableScrolling() {
@@ -103,41 +118,36 @@ class Fullpage {
   }
 
   slideUp() {
-    if (this.settings.index > 0 && !this.settings.scrolled) {
+    if (this.settings.index > 0) {
 
       for (let i = 0; i < this.settings.index; i++) {
-        this.scrollTo(i);
+        this.scrollTo(this.sections[i]);
       }
-
       this.settings.index--;
 
     }
   }
 
   slideDown() {
-    if (this.settings.index <= this.sections.length-2 && !this.settings.scrolled) {
+    if (this.settings.index <= this.sections.length-2) {
+      this.scrollTo(this.sections[this.settings.index+1]);
       this.settings.index++;
-
-      for (let i = 0; i < this.settings.index; i++) {
-        this.scrollTo(i+1);
-      }
-
     }
   }
 
   scrollToTop() {
-    this.scrollTo(0);
+    this.scrollTo(this.sections[0]);
 
     this.settings.index = 0;
   }
 
   scrollToBottom() {
-    this.scrollTo(this.sections.length-1);
+    this.scrollTo(this.sections[this.sections.length-1]);
     this.settings.index = this.sections.length-1;
   }
 
   scrollTo(target) {
-    this.sections[target].scrollIntoView({
+    target.scrollIntoView({
       block: 'start',
       behavior: 'smooth',
     });
@@ -146,37 +156,83 @@ class Fullpage {
   }
 
   navigationInit() {
-
     for(let i = 0; i <= this.sections.length - 1; i++) {
       const navItem = document.createElement('li');
       const navItemCLickable = document.createElement('a');
 
-      navItemCLickable.setAttribute('data-fullpage-nav-item', i);
+      navItemCLickable.setAttribute(this.navigation.item, i);
       navItemCLickable.setAttribute('href', i);
       navItem.appendChild(navItemCLickable);
-      this.navigation.appendChild(navItem);
+      this.navigation.container.appendChild(navItem);
     }
-
-    document.querySelectorAll(`*[data-fullpage-nav-item]`).forEach(
-      (navItem) => navItem.addEventListener('click', this.navigationHandler)
+    
+    this.navigation.items = document.querySelectorAll(`*[data-fullpage-nav-item]`);
+    this.navigation.items.forEach(
+      (navItem) => navItem.addEventListener('click', this.navigationHandler.bind(this))
     )
   }
 
-  navigationHandler(e) {
-    e.preventDefault();
+  navigationUpdate(index) {
+    this.navigation.items.forEach((el) => {
+      el.removeAttribute(this.navigation.properties, this.navigation.states.active);
+    })
 
-    const navTarget = e.currentTarget.getAttribute('data-fullpage-nav-item');
+    this.navigation.items[index].setAttribute(this.navigation.properties, this.navigation.states.active);
+  }
 
-    this.sections[navTarget].scrollIntoView({
-      block: 'start',
-      behavior: 'smooth',
+  initObserver() {
+    this.observer = new IntersectionObserver((entries, observer) => {
+      this.observerCallback(entries, observer);
+    }, this.observerOptions);
+
+    Array.from(this.sections).forEach((el) => {
+      this.observer.observe(el);
+    });
+  }
+
+  observerCallback(entries) {
+
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        this.allVisible.push(entry);
+      } else {
+        this.allVisible = this.allVisible.filter((el) => {
+        return el.target != entry.target;});
+      }
     });
 
-    this.scrollTo(navTarget);
+    let isScrolling = null;
+    window.clearTimeout(isScrolling);
 
+    isScrolling = setTimeout(() => {
+      let index = 0;
+      let generalIndex = 0;
+      
+      this.allVisible.forEach((el) => {
+        if (el.intersectionRatio >= this.allVisible[index].intersectionRatio) {
+
+          index = this.allVisible.indexOf(el);
+          generalIndex = Array.from(this.sections).indexOf(el.target)
+
+        }
+      })
+
+      this.scrollTo(this.sections[generalIndex]);
+      this.settings.index = generalIndex;
+      this.navigationUpdate(generalIndex);
+
+    }, this.settings.delay);
+
+    this.settings.delay = 500; //fix
+  }
+
+  navigationHandler(e) {
+
+    e.preventDefault();
+    const navTarget = e.currentTarget.getAttribute('data-fullpage-nav-item');
+
+    this.scrollTo(this.sections[navTarget]);
     this.settings.index = 0;
-    this.preventScrolling();
-
   }
 
 }
