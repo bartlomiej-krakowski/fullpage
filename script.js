@@ -47,6 +47,9 @@ class Fullpage {
       threshold: 0.2,
     };
 
+    this.states = {
+      isScrolling: null,
+    }
   }
 
   setEvents() {
@@ -107,9 +110,11 @@ class Fullpage {
     if (!this.settings.scrolled) {
       this.settings.scrolled = true;
 
-      setTimeout(() => {
+      window.clearTimeout( this.states.isScrolling );
+      this.states.isScrolling = setTimeout(() => {
         this.enableScrolling();
-      }, 500);
+      }, 66);
+
     }
   }
 
